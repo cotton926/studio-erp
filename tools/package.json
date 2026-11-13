@@ -1,0 +1,18 @@
+{
+  "name": "studio-erp-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "项目自检工具：在本机没有 JDK 的情况下，也能校验 SQL 结构、Java 语法与业绩算法",
+  "scripts": {
+    "check": "node check-all.mjs",
+    "check:sql": "node check-sql.mjs",
+    "check:java": "node check-java.mjs",
+    "check:alloc": "node check-allocator.mjs",
+    "check:html": "node check-html.mjs"
+  },
+  "devDependencies": {
+    "java-parser": "^3.0.1",
+    "node-sql-parser": "^5.4.0"
+  }
+}

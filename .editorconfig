@@ -1,0 +1,20 @@
+# 统一编码与换行，避免 Windows 同事提交的 CRLF 把 CI 搞红
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,json,html,css,js,mjs}]
+indent_size = 2
+
+# SQL 迁移脚本必须保持手工排版，自动格式化会把注释和列对齐冲散
+[*.sql]
+trim_trailing_whitespace = false
+
+[*.md]
+trim_trailing_whitespace = false

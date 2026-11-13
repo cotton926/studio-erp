@@ -1,0 +1,225 @@
+/* ---------------------------------------------------------------
+   全局样式
+   【为什么不用 Element Plus 默认蓝】
+   原型是同一位设计师朋友确认过的配色（深一点的蓝 #185fa5），
+   换成 EP 默认的亮蓝后，整个系统看起来会"更廉价"，
+   而这种差异很难用语言描述，只能靠对齐色值。
+   --------------------------------------------------------------- */
+:root {
+  --t1: #1f2329;
+  --t2: #5f6672;
+  --t3: #9aa1ac;
+  --blue: #185fa5;
+  --blue-bg: #e6f1fb;
+  --blue-line: #b5d4f4;
+  --red: #a32d2d;
+  --red-bg: #fcebeb;
+  --green: #0f6e56;
+  --green-bg: #e1f5ee;
+  --amber: #854f0b;
+  --amber-bg: #faeeda;
+  --line: #e5e6eb;
+  --line-2: #f0f1f3;
+  --bg: #f5f6f8;
+  --card: #fff;
+  --radius: 10px;
+
+  /* Element Plus 主题色对齐 */
+  --el-color-primary: #185fa5;
+  --el-color-primary-light-3: #4d86bd;
+  --el-color-primary-light-5: #7ba6ce;
+  --el-color-primary-light-7: #a9c6df;
+  --el-color-primary-light-8: #c0d6e8;
+  --el-color-primary-light-9: #e6f1fb;
+  --el-color-primary-dark-2: #134b84;
+
+  --el-color-success: #0f6e56;
+  --el-color-warning: #854f0b;
+  --el-color-danger: #a32d2d;
+  --el-color-error: #a32d2d;
+
+  --el-border-radius-base: 8px;
+  --el-font-size-base: 13px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------- 通用卡片 / 标题 ---------------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-h {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-h h2 {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.card-h .hint {
+  font-size: 11px;
+  color: var(--t3);
+  font-weight: 400;
+}
+
+.card-b {
+  padding: 16px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+.muted {
+  color: var(--t3);
+  font-size: 12px;
+}
+
+.mono {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.strong {
+  font-weight: 600;
+}
+
+/* ---------------- KPI 卡片 ---------------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.kpi .k {
+  font-size: 12px;
+  color: var(--t2);
+}
+
+.kpi .v {
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+.kpi .v small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--t3);
+  margin-left: 4px;
+}
+
+.kpi .s {
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 2px;
+}
+
+.kpi.hl {
+  background: var(--blue-bg);
+  border-color: var(--blue-line);
+}
+
+.kpi.hl .v {
+  color: var(--blue);
+}
+
+.kpi.warn {
+  background: var(--amber-bg);
+}
+
+.kpi.warn .v {
+  color: var(--amber);
+}
+
+@media (max-width: 1100px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ---------------- 表格微调 ---------------- */
+.el-table {
+  --el-table-border-color: var(--line-2);
+  --el-table-header-bg-color: #fafbfc;
+  --el-table-header-text-color: var(--t2);
+  --el-table-row-hover-bg-color: #f7f9fb;
+  font-size: 12.5px;
+}
+
+.el-table th.el-table__cell {
+  font-weight: 500;
+}
+
+/* 金额列统一右对齐 + 等宽数字，方便纵向比对 */
+.cell-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+}
+
+.text-blue {
+  color: var(--blue);
+}
+
+.text-green {
+  color: var(--green);
+}
+
+.text-red {
+  color: var(--red);
+}
+
+.text-amber {
+  color: var(--amber);
+}

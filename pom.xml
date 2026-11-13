@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.studio</groupId>
+    <artifactId>studio-erp</artifactId>
+    <version>1.0.0</version>
+    <name>studio-erp</name>
+    <description>平面设计公司内部业务管理系统</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <sa-token.version>1.38.0</sa-token.version>
+        <easyexcel.version>3.3.4</easyexcel.version>
+        <hutool.version>5.8.27</hutool.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- 注意：Spring Boot 3 必须用 spring-boot3 版本的 starter，
+             用旧的 mybatis-plus-boot-starter 会因 javax→jakarta 包名不兼容而启动失败 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Flyway：表结构变更必须版本化，否则线上库和代码库迟早对不上 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+            <version>${sa-token.version}</version>
+        </dependency>
+
+        <!--
+          只为拿 BCryptPasswordEncoder，不引入整个 Spring Security。
+          为什么不用 MD5/SHA256 自己加盐：这两者算得太快，显卡每秒能试几十亿次，
+          库一泄露密码基本等于明文。BCrypt 内置工作因子（cost=10 约 60ms 一次），
+          把爆破成本抬到不可接受，而且盐值直接存在哈希串里，无需额外字段。
+          为什么不用 hutool 里的 BCrypt：它是第三方实现，密码学相关尽量用经过
+          大规模审计的 Spring Security 版本；hutool 继续用于其他工具类。
+        -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>${easyexcel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!--
+                      【为什么必须显式指定编码】
+                      Windows 控制台默认代码页是 GBK/CP936，JVM 的 System.out 用它编码，
+                      中文日志会变成 "???（乱码）"。这直接影响排障：
+                      本来就靠"登录失败，用户名=张三"这类日志定位问题，变成问号后等于没有。
+                      file.encoding 管文件读写，sun.stdout/stderr.encoding 管控制台输出，
+                      三个都要设，缺一个还会漏。
+                    -->
+                    <jvmArguments>-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8</jvmArguments>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

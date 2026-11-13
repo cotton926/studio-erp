@@ -1,0 +1,107 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: studio-erp
+
+  datasource:
+    # 【为什么全部走环境变量】数据库密码写进 yml 就等于进了 Git 历史，
+    # 一旦仓库泄露或交接给外部，生产库直接失守。冒号后面是本地开发默认值。
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:studio_erp}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # 几十人的内部系统，10 个连接足够；给太大反而在数据库侧堆积空闲连接
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 5000
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    # 迁移脚本只允许向前，禁止回滚脚本：回滚会删数据，财务类系统不能这么玩
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  servlet:
+    multipart:
+      # 稿件场景（psd/ai/源文件压缩包）50MB 够用；不设配额的情况下，
+      # 上限越大普通员工越容易把磁盘打满（审计写库也跟着挂）
+      max-file-size: 50MB
+      max-request-size: 51MB
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    # 下划线转驼峰：数据库 item_name → Java itemName，省掉满屏的 resultMap
+    map-underscore-to-camel-case: true
+    # 开发期打印 SQL，上线前改成 NoOpImpl，否则日志会被 SQL 淹没
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+sa-token:
+  token-name: studio-token
+  # 内部系统，8 小时（一个工作日）过期，避免员工午休回来就要重新登录
+  timeout: 28800
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+
+logging:
+  level:
+    root: info
+    com.studio.erp: debug
+  pattern:
+    # traceId 必须打进日志：出问题时能顺着一个请求把整条链路捞出来
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-}] %logger{36} - %msg%n"
+
+app:
+  # 首次启动创建管理员用的初始密码，缺失时程序只告警不建号，绝不使用默认密码兜底
+  admin:
+    init-password: ${ADMIN_INIT_PASSWORD:}
+  file:
+    storage: ${FILE_STORAGE:minio}
+    endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    bucket: ${MINIO_BUCKET:studio-erp}
+    access-key: ${MINIO_ACCESS_KEY:}
+    secret-key: ${MINIO_SECRET_KEY:}
+
+studio:
+  storage:
+    # 稿件存本地磁盘。
+    # 【为什么先不用 MinIO】内部系统一天几十个文件、总量几十 GB，本地磁盘够用；
+    # 引入 MinIO 意味着多一个要运维的进程、多一套凭据、多一处会挂的地方。
+    # 等真的出现"多台机器要共享文件"或"文件超过几百 GB"时再换，届时只需改这一个配置项
+    # （存储路径已经抽在 file_url 里，迁移时把老文件拷过去即可）。
+    # 【会出什么问题】换机器/重装系统时这个目录不跟着走，数据库有记录但文件没了，
+    # 点下载会提示"文件已丢失"。所以这个目录必须纳入备份，且放在项目外更稳妥。
+    upload-dir: ${UPLOAD_DIR:./data/uploads}
+
+  receivable:
+    # 收款计划的分期口径：订金占比（百分比），剩余部分即尾款。
+    # 【为什么可配】不同客户谈法不一样（有的 5:5、有的 3:7），
+    # 但比例一旦定下来就按单固化在 receivable_plan 里，改配置只影响之后新定价的单。
+    deposit-percent: ${RECEIVABLE_DEPOSIT_PERCENT:30}
+    # 月末催收窗口：每月最后 N 天集中催尾款。
+    # 需求是"月底最后三天"，所以默认 3；改成 5 就变成最后五天，不用改代码。
+    window-days: ${RECEIVABLE_WINDOW_DAYS:3}
+
+  salary:
+    # 阶梯提成的算法。中文里"阶梯比例"对应两种完全不同的算法，算出来的工资能差一两千：
+    #   WHOLE    跳点：业绩 26000 → 26000 × 50% = 13000
+    #   MARGINAL 累进：20000×40% + 5000×45% + 1000×50% = 10750
+    # 需求写的是"做到 20000 拿 45%"，对应的是跳点，所以默认 WHOLE。
+    # 改这一行即可切换，不用改代码；切换后历史月份的数字会变，工资单上会标明用的是哪种。
+    tier-mode: ${SALARY_TIER_MODE:WHOLE}

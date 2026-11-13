@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设计公司业务管理系统 · 原型</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#fff; --line:#e6e8eb; --line-2:#eef0f2;
+    --t1:#1f2329; --t2:#5f6672; --t3:#9aa1ac;
+    --blue:#185fa5; --blue-bg:#e6f1fb; --blue-line:#b5d4f4;
+    --red:#a32d2d; --red-bg:#fcebeb;
+    --green:#0f6e56; --green-bg:#e1f5ee;
+    --amber:#854f0b; --amber-bg:#faeeda;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:var(--t1);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .app{display:flex;min-height:100vh}
+
+  /* ---------- 侧栏 ---------- */
+  .side{width:208px;flex:0 0 208px;background:#fff;border-right:1px solid var(--line);
+        display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .brand{padding:18px 18px 16px;border-bottom:1px solid var(--line-2)}
+  .brand h1{font-size:14px;font-weight:600;letter-spacing:.2px}
+  .brand p{font-size:11px;color:var(--t3);margin-top:2px}
+  .nav{padding:10px 10px;flex:1;overflow:auto}
+  .nav-group{font-size:11px;color:var(--t3);padding:12px 8px 6px}
+  .nav a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;
+         color:var(--t2);text-decoration:none;cursor:pointer;font-size:13px}
+  .nav a:hover{background:#f2f4f6;color:var(--t1)}
+  .nav a.on{background:var(--blue-bg);color:var(--blue);font-weight:500}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5}
+  .side-foot{padding:12px 16px;border-top:1px solid var(--line-2);font-size:11px;color:var(--t3)}
+
+  /* ---------- 主区 ---------- */
+  main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:0 24px;height:52px;
+          display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+  .crumb{font-size:12px;color:var(--t3)}
+  .crumb b{color:var(--t1);font-weight:500}
+  .user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)}
+  .avatar{width:26px;height:26px;border-radius:50%;background:var(--blue-bg);color:var(--blue);
+          display:grid;place-items:center;font-size:11px;font-weight:600}
+  .content{padding:20px 24px 40px;flex:1}
+  .view{display:none}
+  .view.on{display:block}
+
+  /* ---------- 通用 ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+  .card-h{padding:14px 16px;border-bottom:1px solid var(--line-2);display:flex;
+          align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .card-h h2{font-size:13px;font-weight:600}
+  .card-h .hint{font-size:11px;color:var(--t3);font-weight:400}
+  .card-b{padding:16px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--t1);padding:6px 12px;
+       border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:#d0d5db;background:#fafbfc}
+  .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn.primary:hover{background:#134e8a;border-color:#134e8a}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--blue);padding:4px 6px}
+  .select,.input{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;
+                 font-size:12px;font-family:inherit;color:var(--t1);outline:none}
+  .select:focus,.input:focus{border-color:var(--blue-line);box-shadow:0 0 0 3px rgba(24,95,165,.08)}
+  .tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;line-height:18px}
+  .tag.b{background:var(--blue-bg);color:var(--blue)}
+  .tag.g{background:var(--green-bg);color:var(--green)}
+  .tag.r{background:var(--red-bg);color:var(--red)}
+  .tag.a{background:var(--amber-bg);color:var(--amber)}
+  .tag.n{background:#f2f4f6;color:var(--t2)}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ---------- 指标卡 ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .kpi .k{font-size:12px;color:var(--t2);display:flex;align-items:center;gap:6px}
+  .kpi .v{font-size:24px;font-weight:600;letter-spacing:-.3px;margin-top:6px;
+          font-variant-numeric:tabular-nums}
+  .kpi .v small{font-size:12px;font-weight:400;color:var(--t3);margin-left:3px}
+  .kpi .s{font-size:11px;color:var(--t3);margin-top:4px}
+  .kpi.hl{border-color:var(--blue-line);background:linear-gradient(180deg,#f7fbff,#fff)}
+  .kpi.warn .v{color:var(--red)}
+
+  /* ---------- 柱状图 ---------- */
+  .chart{display:flex;align-items:flex-end;gap:10px;height:132px;padding:8px 4px 0}
+  .bar-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+  .bar{width:100%;max-width:42px;background:var(--blue-line);border-radius:5px 5px 0 0;
+       transition:.2s;position:relative;min-height:3px}
+  .bar.on{background:var(--blue)}
+  .bar:hover{opacity:.85}
+  .bar-x{font-size:11px;color:var(--t3)}
+  .bar-x.on{color:var(--blue);font-weight:500}
+  .bar-v{font-size:10px;color:var(--t3);opacity:0;transition:.2s}
+  .bar-wrap:hover .bar-v{opacity:1}
+
+  /* ---------- 表格 ---------- */
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;font-weight:500;color:var(--t2);background:#fafbfc;padding:9px 12px;
+     border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px}
+  td{padding:10px 12px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfc}
+  .r{text-align:right}
+  .c{text-align:center}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--t2)}
+  .tfoot td{background:#fafbfc;font-weight:600;border-top:1px solid var(--line)}
+  .strong{font-weight:600}
+  .muted{color:var(--t3)}
+  .red{color:var(--red)}
+  .blue{color:var(--blue)}
+  .green{color:var(--green)}
+
+  /* ---------- 录单页 ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 300px;gap:12px;align-items:start}
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px}
+  .fld label{display:block;font-size:11.5px;color:var(--t2);margin-bottom:4px}
+  .fld .select,.fld .input{width:100%}
+  .fld .input[readonly]{background:#f7f8fa;color:var(--t2)}
+  .items th,.items td{padding:8px 10px}
+  .items .input{padding:5px 8px;font-size:12px;width:100%}
+  .items .input.r{text-align:right}
+  .sum-box{background:#fafbfc;border:1px solid var(--line-2);border-radius:8px;padding:12px 14px;
+           display:flex;flex-direction:column;gap:8px}
+  .sum-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--t2)}
+  .sum-row b{color:var(--t1);font-size:15px;font-variant-numeric:tabular-nums}
+  .sum-row.total b{font-size:19px;color:var(--blue)}
+  .check-line{display:flex;align-items:center;gap:6px;font-size:12px}
+  .ok{width:16px;height:16px;border-radius:50%;background:var(--green-bg);color:var(--green);
+      display:grid;place-items:center;font-size:10px;flex:0 0 16px}
+  .warn-ic{width:16px;height:16px;border-radius:50%;background:var(--red-bg);color:var(--red);
+      display:grid;place-items:center;font-size:10px;flex:0 0 16px}
+  .plan-item{display:flex;align-items:center;justify-content:space-between;gap:8px;
+             padding:8px 0;border-bottom:1px dashed var(--line-2);font-size:12.5px}
+  .plan-item:last-child{border-bottom:none}
+  .note{font-size:11.5px;color:var(--t3);line-height:1.7}
+  .callout{background:var(--amber-bg);border:1px solid #f0dcb4;border-radius:8px;
+           padding:10px 12px;font-size:11.5px;color:#6b3f08;line-height:1.7}
+
+  /* 键盘可用性：表格行和按钮要能用 Tab 走完，否则纯键盘用户没法操作 */
+  a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{
+    outline:2px solid var(--blue);outline-offset:2px}
+  /* 尊重系统的"减少动态效果"设置，避免前庭敏感用户不适 */
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+  @media print{
+    .side,.topbar,.btn{display:none!important}
+    .content{padding:0}
+    .card{break-inside:avoid;border-color:#ccc}
+  }
+  @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:760px){.side{display:none}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="side">
+    <div class="brand">
+      <h1>设计业务管理系统</h1>
+      <p>内部使用 · v2.0 原型</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-group">工作台</div>
+      <a class="on" data-view="perf"><span class="dot"></span>我的业绩</a>
+      <a data-view="salary"><span class="dot"></span>我的工资</a>
+      <a data-view="order"><span class="dot"></span>订单录入</a>
+      <a><span class="dot"></span>待我处理</a>
+      <div class="nav-group">业务</div>
+      <a><span class="dot"></span>订单管理</a>
+      <a><span class="dot"></span>客户档案</a>
+      <a><span class="dot"></span>价目表</a>
+      <div class="nav-group">财务</div>
+      <a><span class="dot"></span>回款核销</a>
+      <a><span class="dot"></span>对账单</a>
+      <div class="nav-group">管理</div>
+      <a><span class="dot"></span>团队业绩</a>
+      <a><span class="dot"></span>报表导出</a>
+    </nav>
+    <div class="side-foot">数据截至 11-12 18:40</div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="crumb">工作台 / <b id="crumb">我的业绩</b></div>
+      <div class="user"><span>林小满 · 设计师</span><div class="avatar">林</div></div>
+    </div>
+
+    <!-- ==================== 我的业绩 ==================== -->
+    <div class="content">
+    <section class="view on" id="view-perf">
+
+      <div class="row" style="margin-bottom:12px">
+        <select class="select"><option>2026 年 11 月</option><option>2026 年 10 月</option><option>2026 年 09 月</option></select>
+        <span class="muted" style="font-size:12px">口径：业绩按回款到账月确认，订金与尾款分别计入</span>
+        <div class="spacer"></div>
+        <button class="btn">导出明细</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi hl">
+          <div class="k">本月业绩</div>
+          <div class="v">18,550<small>元</small></div>
+          <div class="s">上月 12,300 · 环比 +50.8%</div>
+        </div>
+        <div class="kpi">
+          <div class="k">本年累计</div>
+          <div class="v">96,320<small>元</small></div>
+          <div class="s">部门排名 3 / 11</div>
+        </div>
+        <div class="kpi">
+          <div class="k">本月单量</div>
+          <div class="v">6<small>单</small></div>
+          <div class="s">含协作 1 单</div>
+        </div>
+        <div class="kpi warn">
+          <div class="k">我的未收业绩</div>
+          <div class="v">9,100<small>元</small></div>
+          <div class="s">已签单、客户尚未回款</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-h">
+          <h2>近 12 个月业绩 <span class="hint">单位：元，蓝色为当前月</span></h2>
+        </div>
+        <div class="card-b">
+          <div class="chart" id="chart"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h2>2026 年 11 月 订单明细</h2>
+          <span class="hint">仅显示与你相关的明细行</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>订单号</th><th>项目 / 品项</th>
+              <th class="r">我的分成</th><th class="r">本人业绩</th>
+              <th>到账日</th><th>款项</th><th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">ABC-2610-003</td>
+              <td>双十一主视觉 · 主视觉海报</td>
+              <td class="r">70%</td><td class="r strong">9,800.00</td>
+              <td>11-20</td><td><span class="tag g">尾款</span></td>
+              <td><span class="tag b">已结清</span></td>
+            </tr>
+            <tr>
+              <td class="mono">XYZ-2611-001</td>
+              <td>品牌画册 · 内页设计</td>
+              <td class="r">100%</td><td class="r strong">3,500.00</td>
+              <td>11-05</td><td><span class="tag a">订金</span></td>
+              <td><span class="tag n">待收尾款</span></td>
+            </tr>
+            <tr>
+              <td class="mono">LMN-2611-002</td>
+              <td>秋季展会展架 · 易拉宝</td>
+              <td class="r">100%</td><td class="r strong">1,200.00</td>
+              <td>11-08</td><td><span class="tag a">订金</span></td>
+              <td><span class="tag n">待收尾款</span></td>
+            </tr>
+            <tr>
+              <td class="mono">ABC-2611-004</td>
+              <td>月饼礼盒包装 · 协作设计</td>
+              <td class="r">30%</td><td class="r strong">1,500.00</td>
+              <td>11-15</td><td><span class="tag a">订金</span></td>
+              <td><span class="tag n">待收尾款</span></td>
+            </tr>
+            <tr>
+              <td class="mono">QWE-2610-007</td>
+              <td>餐饮品牌 LOGO · 含3稿</td>
+              <td class="r">100%</td><td class="r strong">2,400.00</td>
+              <td>11-22</td><td><span class="tag g">尾款</span></td>
+              <td><span class="tag b">已结清</span></td>
+            </tr>
+            <tr>
+              <td class="mono">ABC-2611-009</td>
+              <td>企业名片 · 双面</td>
+              <td class="r">50%</td><td class="r strong">150.00</td>
+              <td>11-25</td><td><span class="tag a">订金</span></td>
+              <td><span class="tag n">待收尾款</span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="tfoot">
+              <td colspan="3" class="r muted">合计（本月确认业绩）</td>
+              <td class="r blue num" style="font-size:14px">18,550.00</td>
+              <td colspan="3"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <p class="note" style="margin-top:10px">
+        指标口径：本月业绩 = 本月到账回款中属于你的部分（明细行金额占比 × 分成比例）；<br>
+        未收业绩 = 你已签单但客户尚未回款的金额，客户下月回款后计入下月业绩。
+      </p>
+    </section>
+
+    <!-- ==================== 订单录入 ==================== -->
+    <section class="view" id="view-order">
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-h">
+          <h2>新建订单 <span class="hint">主管录入 · 单价以本页录入为准</span></h2>
+          <div class="row">
+            <span class="tag a">待定价 → 已确认</span>
+            <button class="btn">保存草稿</button>
+            <button class="btn primary">确认订单</button>
+          </div>
+        </div>
+        <div class="card-b">
+          <div class="form-grid">
+            <div class="fld"><label>订单号（自动生成）</label><input class="input" value="ABC-2611-012" readonly></div>
+            <div class="fld"><label>客户</label><select class="select"><option>阿尔法科技有限公司（ABC）</option></select></div>
+            <div class="fld"><label>项目名称</label><input class="input" value="2026 冬季新品主视觉"></div>
+            <div class="fld"><label>品类</label><select class="select"><option>海报</option><option>画册</option><option>包装</option></select></div>
+            <div class="fld"><label>客服</label><select class="select"><option>周敏</option></select></div>
+            <div class="fld"><label>签单日期</label><input class="input" value="2026-11-12"></div>
+            <div class="fld"><label>结算方式</label><select class="select"><option>分期（订金 + 尾款）</option><option>预付</option><option>月结</option></select></div>
+            <div class="fld"><label>账期</label><input class="input" value="0 天" readonly></div>
+            <div class="fld"><label>期望交付</label><input class="input" value="2026-11-28"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-h">
+              <h2>订单明细 <span class="hint">默认单人；需要协作时点「+ 协作人」</span></h2>
+              <button class="btn">+ 添加明细行</button>
+            </div>
+            <table class="items">
+              <thead>
+                <tr>
+                  <th style="width:29%">品项</th>
+                  <th style="width:9%">数量</th>
+                  <th style="width:13%">单价</th>
+                  <th style="width:13%" class="r">金额</th>
+                  <th>设计师 / 分成</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input class="input" value="主视觉海报·初稿3版"></td>
+                  <td><input class="input r" value="1"></td>
+                  <td><input class="input r" value="8000.00"></td>
+                  <td class="r strong num">8,000.00</td>
+                  <td>
+                    <div class="row" style="gap:6px">
+                      <select class="select" style="flex:1"><option>林小满</option></select>
+                      <span class="tag b">100%</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input class="input" value="包装设计·单品"></td>
+                  <td><input class="input r" value="1"></td>
+                  <td><input class="input r" value="6000.00"></td>
+                  <td class="r strong num">6,000.00</td>
+                  <td>
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <div class="row" style="gap:6px">
+                        <select class="select" style="flex:1"><option>陈默（主设）</option></select>
+                        <input class="input r" value="70" style="width:52px">
+                        <span class="muted">%</span>
+                      </div>
+                      <div class="row" style="gap:6px">
+                        <select class="select" style="flex:1"><option>林小满（协作）</option></select>
+                        <input class="input r" value="30" style="width:52px">
+                        <span class="muted">%</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input class="input" value="赠品·名片设计"></td>
+                  <td><input class="input r" value="1"></td>
+                  <td><input class="input r" value="0.00"></td>
+                  <td class="r strong num">0.00</td>
+                  <td><span class="tag n">赠品 · 计单量不计业绩</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>收款计划</h2><span class="hint">用于未收业绩与账龄分析</span></div>
+            <div class="card-b" style="padding-top:6px">
+              <div class="plan-item">
+                <span><span class="tag a">订金</span> 30% · 计划 2026-11-15</span>
+                <b class="num">4,200.00</b>
+              </div>
+              <div class="plan-item">
+                <span><span class="tag g">尾款</span> 70% · 计划 2026-12-10</span>
+                <b class="num">9,800.00</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-h"><h2>金额汇总</h2></div>
+            <div class="card-b">
+              <div class="sum-box">
+                <div class="sum-row"><span>订单总额</span><b>14,000.00</b></div>
+                <div class="sum-row"><span>业绩分摊基数</span><b>14,000.00</b></div>
+                <div class="sum-row total" style="border-top:1px solid var(--line-2);padding-top:8px">
+                  <span>签单额（本月）</span><b>14,000.00</b>
+                </div>
+              </div>
+
+              <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+                <div class="check-line"><span class="ok">✓</span>第 1 行分成合计 100%</div>
+                <div class="check-line"><span class="ok">✓</span>第 2 行分成合计 100%</div>
+                <div class="check-line"><span class="warn-ic">!</span><span class="muted">第 3 行为赠品，不参与分摊</span></div>
+              </div>
+
+              <div class="callout" style="margin-top:14px">
+                单价由主管在本页录入并保存为快照。日后价目表调价，本单业绩不会跟着变。
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>分成明细</h2></div>
+            <div class="card-b" style="padding-top:6px">
+              <div class="plan-item">
+                <span>林小满</span><b class="num">8,000 + 1,800 = 9,800</b>
+              </div>
+              <div class="plan-item">
+                <span>陈默</span><b class="num">4,200</b>
+              </div>
+              <p class="note" style="margin-top:10px">
+                签单额在签单月一次性记入；业绩按回款到账月确认，本单 11 月订金到账后先确认 30%，12 月尾款到账再确认 70%。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 我的工资 ==================== -->
+    <section class="view" id="view-salary">
+
+      <div class="row" style="margin-bottom:12px">
+        <select class="select"><option>2026 年 11 月</option><option>2026 年 10 月</option><option>2026 年 09 月</option></select>
+        <span class="tag b">精英员工</span>
+        <span class="tag b">跳点提成</span>
+        <span class="muted" style="font-size:12px">只按已到账回款核算，签单额不参与提成</span>
+        <div class="spacer"></div>
+        <button class="btn">导出工资条</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi hl">
+          <div class="k">本月业绩</div>
+          <div class="v">18,550<small>元</small></div>
+          <div class="s">4 笔回款确认，含 1 笔跨月尾款</div>
+        </div>
+        <div class="kpi">
+          <div class="k">命中比例</div>
+          <div class="v">40<small>%</small></div>
+          <div class="s">业绩 20,000 以下档</div>
+        </div>
+        <div class="kpi">
+          <div class="k">提成</div>
+          <div class="v">7,420.00<small>元</small></div>
+          <div class="s">18,550 × 40%</div>
+        </div>
+        <div class="kpi">
+          <div class="k">应发工资</div>
+          <div class="v">9,420.00<small>元</small></div>
+          <div class="s">底薪 2,000（精英）+ 提成 7,420</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div style="display:flex;flex-direction:column;gap:12px">
+
+          <div class="card">
+            <div class="card-h">
+              <h2>工资构成</h2>
+              <span class="hint">算错一位就要重新发工资，所以每一行都能对得上</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th>项目</th><th>计算方式</th><th class="r">金额</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>底薪</td>
+                  <td class="mono">精英员工 · 按级别政策</td>
+                  <td class="r mono">2,000.00</td>
+                </tr>
+                <tr>
+                  <td>提成</td>
+                  <td class="mono">业绩 18,550.00 × 40%</td>
+                  <td class="r mono">7,420.00</td>
+                </tr>
+                <tr class="tfoot">
+                  <td colspan="2">应发工资</td>
+                  <td class="r mono blue">9,420.00</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="card-b" style="padding-top:12px">
+              <div class="callout">
+                本月签单额 <b>24,000 元</b>，业绩只有 <b>18,550 元</b>，差在客户还有 5,450 元尾款没到账。
+                按「回款到账才算业绩」的规则，这 5,450 要等下月收到、计入下月业绩 ——
+                所以签单多的月份不一定工资高，签单额不能用来算提成。
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <h2>提成阶梯</h2>
+              <span class="hint">命中哪一档，整笔业绩都按该档比例</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th>档位</th><th>月业绩区间</th><th class="r">比例</th><th class="c">状态</th></tr>
+              </thead>
+              <tbody>
+                <tr style="background:#f7fbff">
+                  <td class="strong">第 1 档</td>
+                  <td class="mono">0 ~ 20,000</td>
+                  <td class="r mono blue">40%</td>
+                  <td class="c"><span class="tag b">当前</span></td>
+                </tr>
+                <tr>
+                  <td>第 2 档</td>
+                  <td class="mono">20,000 ~ 25,000</td>
+                  <td class="r mono">45%</td>
+                  <td class="c"><span class="tag n">还差 1,450</span></td>
+                </tr>
+                <tr>
+                  <td>第 3 档</td>
+                  <td class="mono">25,000 以上</td>
+                  <td class="r mono">50%</td>
+                  <td class="c"><span class="tag n">—</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="card-b">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:6px">
+                <span>距离第 2 档</span>
+                <span><b class="blue">18,550</b> / 20,000</span>
+              </div>
+              <div style="height:8px;background:#eef0f2;border-radius:4px;overflow:hidden">
+                <div style="width:92.75%;height:100%;background:var(--blue);border-radius:4px"></div>
+              </div>
+              <p class="note" style="margin-top:10px">
+                再做 <b class="blue">1,450 元</b>回款业绩就能进第 2 档：提成从 7,420 变成 9,000，
+                <b class="green">多拿 1,580 元</b>。跳点算法下升档是一整笔跳，所以这一下会比平时高一截，不是算错。
+              </p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <h2>底薪政策</h2>
+              <span class="hint">级别定底薪，提成另按业绩算</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th>级别</th><th>说明</th><th class="r">月底薪</th><th class="c">状态</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>普通员工</td>
+                  <td class="mono">默认级别</td>
+                  <td class="r mono">1,500.00</td>
+                  <td class="c"><span class="tag n">—</span></td>
+                </tr>
+                <tr style="background:#f7fbff">
+                  <td class="strong">精英员工</td>
+                  <td class="mono">骨干 / 资深</td>
+                  <td class="r mono blue">2,000.00</td>
+                  <td class="c"><span class="tag b">当前</span></td>
+                </tr>
+                <tr>
+                  <td>主管</td>
+                  <td class="mono">部门负责人</td>
+                  <td class="r mono">3,000.00</td>
+                  <td class="c"><span class="tag n">—</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="card-b">
+              <div class="callout">
+                底薪按级别固定发放，跟业绩无关：业绩为 0 的月份（新人、长假、内勤）也照发，只是提成为 0。
+                个别谈好特殊待遇的，由主管在员工档案里单独指定金额，撤销后自动回到级别金额。
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card">
+            <div class="card-h"><h2>本月业绩来源</h2></div>
+            <div class="card-b">
+              <div class="plan-item"><span>青禾文化 · 画册</span><b class="num">8,400</b></div>
+              <div class="plan-item"><span>云帆科技 · 包装</span><b class="num">6,000</b></div>
+              <div class="plan-item"><span>青禾文化 · 尾款</span><b class="num">2,150</b></div>
+              <div class="plan-item"><span>其他小额</span><b class="num">2,000</b></div>
+              <p class="note" style="margin-top:10px">
+                点任意一条可追溯到具体订单与回款单，看到这笔钱是哪天到账的。
+              </p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>规则说明</h2></div>
+            <div class="card-b">
+              <p class="note">
+                1. 业绩 = 本月到账回款按分成比例确认的金额，含冲销与调整；<br>
+                2. 订金计入到账当月，尾款计入实际到账当月；<br>
+                3. 退款冲销会产生负业绩，提成按最低档比例扣回，下月补回；<br>
+                4. 阶梯由管理员在「工资设置」维护，调整后立即生效。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+</div>
+
+<script>
+  // 侧栏切换：原型阶段只做视图切换，真实项目由 Vue Router 承担
+  const links = document.querySelectorAll('.nav a[data-view]');
+  links.forEach((a) => {
+    a.addEventListener('click', () => {
+      links.forEach((x) => x.classList.remove('on'));
+      a.classList.add('on');
+      document.querySelectorAll('.view').forEach((v) => v.classList.remove('on'));
+      document.getElementById('view-' + a.dataset.view).classList.add('on');
+      document.getElementById('crumb').textContent = a.textContent.trim();
+      window.scrollTo({ top: 0 });
+    });
+  });
+
+  // 12 个月业绩柱状图（纯 CSS 实现，不引第三方图表库，避免离线打不开）
+  const data = [
+    ['12', 4200], ['01', 6100], ['02', 3800], ['03', 9200], ['04', 7600], ['05', 8800],
+    ['06', 10400], ['07', 5900], ['08', 7200], ['09', 9800], ['10', 12300], ['11', 18550],
+  ];
+  const max = Math.max(...data.map((d) => d[1]));
+  document.getElementById('chart').innerHTML = data.map(([m, v], i) => {
+    const h = Math.max(3, Math.round((v / max) * 100));
+    const on = i === data.length - 1 ? ' on' : '';
+    return `<div class="bar-wrap" title="${m}月 ${v} 元">
+      <div class="bar-v">${(v / 1000).toFixed(1)}k</div>
+      <div class="bar${on}" style="height:${h}%"></div>
+      <div class="bar-x${on}">${m}月</div>
+    </div>`;
+  }).join('');
+</script>
+</body>
+</html>

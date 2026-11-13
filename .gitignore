@@ -1,0 +1,34 @@
+# 构建产物
+target/
+dist/
+*.class
+*.jar
+*.war
+
+# 依赖
+node_modules/
+tools/node_modules/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 日志
+logs/
+*.log
+
+# 本地配置：真实密码/密钥只放这里，绝不入库
+application-local.yml
+.env
+.env.local
+
+# 上传目录（本地调试时的临时文件）
+uploads/
+# 稿件文件（本地磁盘存储，含客户未定稿方案，绝不入库）
+data/
