@@ -132,4 +132,41 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+          【交付打包专用 profile】mvn -Pwith-web clean package
+          在正常构建之外，把 web/dist 的前端产物塞进 jar 的 static/ 目录，
+          成品是一个 jar 同时提供页面和接口（单端口 8080），交付时不需要 Nginx。
+          默认构建不带这个 profile，日常开发每个 class 改动都不会重新拷贝几 MB 静态资源。
+        -->
+        <profile>
+            <id>with-web</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-web-dist</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/web/dist</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

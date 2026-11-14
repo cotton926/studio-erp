@@ -1,0 +1,47 @@
+# ============================================================
+# 生产/交付环境配置（profile=prod）
+# 启动时通过 SPRING_PROFILES_ACTIVE=prod 激活，交付包里的 start.bat 已代为设置。
+# 这里只覆盖「开发环境不能带上生产」的几项，其余沿用 application.yml，避免两处维护。
+# ============================================================
+
+spring:
+  datasource:
+    # 生产不给默认值：DB_USER/DB_PASSWORD 缺失时启动直接失败，
+    # 而不是悄悄用 root + 空密码连上去（那种事故比启动失败严重得多）。
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      # 内部系统白天峰值约 20 人，10 个连接够用；空闲 5 分钟回收，避免占住数据库连接数
+      idle-timeout: 300000
+      max-lifetime: 1800000
+
+mybatis-plus:
+  configuration:
+    # 生产关掉 SQL 打印：开启后每条查询都往磁盘写一行，日志几天就上 GB，
+    # 真正的错误反而被淹掉。排障时临时改回 StdOutImpl 再重启即可。
+    # 注意类名是 MyBatis 内置的 NoLoggingImpl（写成 NoOpImpl 会启动即失败）。
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+logging:
+  level:
+    root: info
+    com.studio.erp: info
+  file:
+    name: ${LOG_DIR:./logs}/studio-erp.log
+  logback:
+    rollingpolicy:
+      # 单文件 10MB 滚动、保留 14 天：内置盘机器最常见的故障就是日志把磁盘写满
+      max-file-size: 10MB
+      max-history: 14
+      total-size-cap: 500MB
+
+server:
+  compression:
+    # 内网带宽不紧张，但 60 天的业绩报表 JSON 有几 MB，压缩后首屏明显快
+    enabled: true
+    mime-types: application/json,text/html,text/css,application/javascript,text/plain
+  tomcat:
+    # 交付机通常是低配：线程数按实际并发（≤50 人）收紧，避免上下文切换开销
+    threads:
+      max: 100
+      min-spare: 10

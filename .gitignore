@@ -32,3 +32,7 @@ application-local.yml
 uploads/
 # 稿件文件（本地磁盘存储，含客户未定稿方案，绝不入库）
 data/
+
+# 交付打包产物（体积大，不入库；模板与打包脚本仍纳入版本管理）
+delivery/*.zip
+delivery/studio-erp-v*/

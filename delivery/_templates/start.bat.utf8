@@ -1,0 +1,79 @@
+@echo off
+chcp 936 >nul
+setlocal enabledelayedexpansion
+cd /d "%~dp0"
+
+rem ============================================================
+rem studio-erp 启动脚本
+rem 前置条件：同目录存在 config.env（由 config.env.example 复制而来）
+rem 注意：本文件必须以 GBK 编码保存，存成 UTF-8 会让中文行被 cmd 误解析。
+rem ============================================================
+
+if not exist "app\studio-erp-1.0.0.jar" (
+    echo [错误] 缺少 app\studio-erp-1.0.0.jar，交付包不完整。
+    pause
+    exit /b 1
+)
+
+if not exist "config.env" (
+    echo [错误] 未找到 config.env。
+    echo        请把 config.env.example 复制一份、改名为 config.env，
+    echo        填好数据库连接信息后重新双击本脚本。
+    pause
+    exit /b 1
+)
+
+rem 逐行读取 K=V，跳过以 # 开头的注释行和空行
+for /f "usebackq eol=# tokens=1,* delims==" %%a in ("config.env") do (
+    if not "%%a"=="" set "%%a=%%b"
+)
+
+if "%SERVER_PORT%"=="" set "SERVER_PORT=8080"
+
+if not exist "logs" mkdir "logs"
+if not exist "data\uploads" mkdir "data\uploads"
+
+rem 日志与上传目录固定落在包内，整目录拷到别的机器也能直接用
+set "SPRING_PROFILES_ACTIVE=prod"
+set "LOG_DIR=%~dp0logs"
+set "UPLOAD_DIR=%~dp0data\uploads"
+
+set "JAVA_EXE=java"
+if defined JAVA_HOME if exist "%JAVA_HOME%\bin\java.exe" set "JAVA_EXE=%JAVA_HOME%\bin\java.exe"
+
+"%JAVA_EXE%" -version >nul 2>&1
+if errorlevel 1 (
+    echo [错误] 找不到可用的 Java。
+    echo        请安装 JDK 17，并设置 JAVA_HOME 指向安装目录。
+    pause
+    exit /b 1
+)
+
+if "%DB_PASSWORD%"=="" echo [警告] config.env 里的 DB_PASSWORD 为空，数据库若设了密码将连不上。
+
+echo.
+echo   正在启动 studio-erp，启动窗口会最小化，关掉那个窗口等于停止服务。
+echo   访问地址：http://本机IP:%SERVER_PORT%
+echo   运行日志：logs\studio-erp.log
+echo   停止服务：双击 stop.bat
+echo.
+
+start "studio-erp" /min "%JAVA_EXE%" -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -Xms256m -Xmx768m -jar "app\studio-erp-1.0.0.jar" --server.port=%SERVER_PORT%
+
+rem 轮询端口，最多等 90 秒
+set /a WAITED=0
+:waitloop
+%SystemRoot%\System32\ping.exe -n 4 127.0.0.1 >nul
+set /a WAITED+=3
+netstat -an | findstr ":%SERVER_PORT% " | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 goto ready
+if %WAITED% LSS 90 goto waitloop
+
+echo [警告] 90 秒内端口未就绪，请打开 logs\studio-erp.log 查看报错原因。
+pause
+exit /b 1
+
+:ready
+echo   启动成功，正在打开浏览器 ...
+start "" http://127.0.0.1:%SERVER_PORT%
+%SystemRoot%\System32\ping.exe -n 4 127.0.0.1 >nul

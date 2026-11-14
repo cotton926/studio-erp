@@ -1,0 +1,43 @@
+@echo off
+chcp 936 >nul
+setlocal enabledelayedexpansion
+cd /d "%~dp0"
+
+rem ============================================================
+rem studio-erp 停止脚本
+rem 定位方式：java 进程的 jar 名匹配，其次按端口匹配。
+rem 不依赖端口是否改过，也不依赖进程窗口标题。
+rem 注意：本文件必须以 GBK 编码保存。
+rem ============================================================
+
+if exist "config.env" (
+    for /f "usebackq eol=# tokens=1,* delims==" %%a in ("config.env") do (
+        if not "%%a"=="" set "%%a=%%b"
+    )
+)
+if "%SERVER_PORT%"=="" set "SERVER_PORT=8080"
+
+set "FOUND=0"
+
+rem 方式一：jps 列出 java 进程及其主类/参数，命中 jar 名的就是我们的进程
+for /f "usebackq tokens=1" %%p in (`jps -l 2^>nul ^| findstr /c:"studio-erp-1.0.0.jar"`) do (
+    echo   正在结束进程 PID=%%p ...
+    taskkill /PID %%p /F >nul 2>&1
+    set "FOUND=1"
+)
+
+rem 方式二：jps 不可用时，按端口找监听进程
+if "%FOUND%"=="0" (
+    for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":%SERVER_PORT% " ^| findstr "LISTENING"') do (
+        echo   正在结束占用端口 %SERVER_PORT% 的进程 PID=%%p ...
+        taskkill /PID %%p /F >nul 2>&1
+        set "FOUND=1"
+    )
+)
+
+if "%FOUND%"=="0" (
+    echo   未发现正在运行的 studio-erp 进程。
+) else (
+    echo   已停止，日志保留在 logs 目录。
+)
+%SystemRoot%\System32\ping.exe -n 4 127.0.0.1 >nul
