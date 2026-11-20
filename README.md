@@ -120,12 +120,9 @@ web/                                     ← Vue 3 前端（独立工程）
 
 前置：JDK 17、Maven 3.9+、MySQL 8.0。
 
-> 本机已装好（用户级，无需管理员权限，**新开终端**才生效）：
-> - JDK：`%LOCALAPPDATA%\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.21+9`（Temurin 17.0.21）
-> - Maven：`%LOCALAPPDATA%\AppData\Local\Programs\apache-maven-3.9.16`
-> - MySQL：`%LOCALAPPDATA%\AppData\Local\Programs\mysql-8.0.28-winx64`（绿色版，非 Windows 服务）
-> - 环境变量：`JAVA_HOME` / `MAVEN_HOME` / `MYSQL_HOME` / `Path`
-> - Maven 镜像配置在 `%LOCALAPPDATA%\.m2\settings.xml`（阿里云 public），只影响下载地址
+> 三者都可用用户级安装，不需要管理员权限：解压到任意目录，配好
+> `JAVA_HOME` / `MAVEN_HOME` / `MYSQL_HOME` 与 `Path` 后**新开终端**才生效。
+> Maven 镜像可在 `~/.m2/settings.xml` 指向阿里云，只影响下载地址。
 
 ```bash
 # 1. 启动数据库（双击也行，脚本会前台打印 mysqld 日志）
